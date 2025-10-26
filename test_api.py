@@ -371,8 +371,123 @@ def test_update_post_not_found():
         print(f"❌ Error: {e}")
         return False
 
+def test_search_posts():
+    """Test the GET /api/posts/search endpoint"""
+    try:
+        print("\nTesting GET /api/posts/search endpoint...")
+        
+        # First, create some posts with specific content for searching
+        print("• Creating posts for search testing...")
+        test_posts = [
+            {"title": "Flask Tutorial", "content": "Learn how to build web applications with Flask framework."},
+            {"title": "Python Basics", "content": "Introduction to Python programming language."},
+            {"title": "Database Design", "content": "How to design efficient databases with Flask-SQLAlchemy."}
+        ]
+        
+        created_post_ids = []
+        for post_data in test_posts:
+            response = requests.post(
+                'http://localhost:5002/api/posts',
+                headers={'Content-Type': 'application/json'},
+                json=post_data
+            )
+            if response.status_code == 201:
+                created_post_ids.append(response.json()['id'])
+        
+        print(f"✅ Created {len(created_post_ids)} test posts")
+        
+        # Test 1: Search by title
+        print("• Testing search by title (query: 'flask')...")
+        response = requests.get('http://localhost:5002/api/posts/search?title=flask')
+        
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            search_results = response.json()
+            print(f"✅ Found {len(search_results)} posts matching title 'flask'")
+            
+            # Verify results contain the word "flask" in title
+            flask_found = any('flask' in post['title'].lower() for post in search_results)
+            if flask_found:
+                print("✅ Search results contain posts with 'flask' in title")
+            else:
+                print("❌ Search results don't contain expected posts")
+                return False
+        else:
+            print("❌ Failed to search by title")
+            return False
+        
+        # Test 2: Search by content
+        print("• Testing search by content (query: 'python')...")
+        response = requests.get('http://localhost:5002/api/posts/search?content=python')
+        
+        if response.status_code == 200:
+            search_results = response.json()
+            print(f"✅ Found {len(search_results)} posts matching content 'python'")
+            
+            # Verify results contain the word "python" in content
+            python_found = any('python' in post['content'].lower() for post in search_results)
+            if python_found:
+                print("✅ Search results contain posts with 'python' in content")
+            else:
+                print("❌ Search results don't contain expected posts")
+                return False
+        else:
+            print("❌ Failed to search by content")
+            return False
+        
+        # Test 3: Search with both parameters
+        print("• Testing search with both title and content parameters...")
+        response = requests.get('http://localhost:5002/api/posts/search?title=database&content=flask')
+        
+        if response.status_code == 200:
+            search_results = response.json()
+            print(f"✅ Found {len(search_results)} posts matching either criteria")
+            print("✅ Combined search working correctly")
+        else:
+            print("❌ Failed to search with combined parameters")
+            return False
+        
+        # Test 4: Search with no matches
+        print("• Testing search with no matches (query: 'nonexistent')...")
+        response = requests.get('http://localhost:5002/api/posts/search?title=nonexistent')
+        
+        if response.status_code == 200:
+            search_results = response.json()
+            if len(search_results) == 0:
+                print("✅ Correctly returned empty list for no matches")
+            else:
+                print("❌ Should return empty list for no matches")
+                return False
+        else:
+            print("❌ Failed to handle no matches case")
+            return False
+        
+        # Test 5: Search with no parameters
+        print("• Testing search with no parameters...")
+        response = requests.get('http://localhost:5002/api/posts/search')
+        
+        if response.status_code == 200:
+            search_results = response.json()
+            if len(search_results) == 0:
+                print("✅ Correctly returned empty list for no search parameters")
+                return True
+            else:
+                print("❌ Should return empty list when no parameters provided")
+                return False
+        else:
+            print("❌ Failed to handle no parameters case")
+            return False
+            
+    except requests.exceptions.ConnectionError:
+        print("❌ Connection Error: Make sure the backend server is running on port 5002")
+        return False
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        return False
+
 if __name__ == "__main__":
-    print("🧪 Running API Tests for Step 4: Complete CRUD Operations\n")
+    print("🧪 Running API Tests for Step 5: Complete CRUD + Search Operations\n")
     
     # Test GET endpoint first
     get_success = test_get_posts()
@@ -388,6 +503,9 @@ if __name__ == "__main__":
     
     # Test PUT with non-existent ID
     update_not_found_success = test_update_post_not_found()
+    
+    # Test SEARCH endpoint
+    search_success = test_search_posts()
     
     # Test DELETE endpoint
     delete_success = test_delete_post()
@@ -407,13 +525,15 @@ if __name__ == "__main__":
     print(f"POST Validation: {'✅ PASS' if validation_success else '❌ FAIL'}")
     print(f"PUT /api/posts/<id>: {'✅ PASS' if update_success else '❌ FAIL'}")
     print(f"PUT 404 Error: {'✅ PASS' if update_not_found_success else '❌ FAIL'}")
+    print(f"GET /api/posts/search: {'✅ PASS' if search_success else '❌ FAIL'}")
     print(f"DELETE /api/posts/<id>: {'✅ PASS' if delete_success else '❌ FAIL'}")
     print(f"DELETE 404 Error: {'✅ PASS' if delete_not_found_success else '❌ FAIL'}")
     
-    all_tests_passed = all([get_success, add_success, validation_success, update_success, update_not_found_success, delete_success, delete_not_found_success])
+    all_tests_passed = all([get_success, add_success, validation_success, update_success, update_not_found_success, search_success, delete_success, delete_not_found_success])
     
     if all_tests_passed:
-        print("\n🎉 All tests passed! Step 4 CRUD API implementation is complete and working correctly.")
-        print("✨ Your RESTful Blog API supports: CREATE, READ, UPDATE, DELETE operations!")
+        print("\n🎉 All tests passed! Step 5 Enhanced API implementation is complete and working correctly.")
+        print("✨ Your RESTful Blog API supports: CREATE, READ, UPDATE, DELETE + SEARCH operations!")
+        print("🔍 Search functionality allows finding posts by title or content!")
     else:
         print("\n⚠️  Some tests failed. Please check the implementation.")

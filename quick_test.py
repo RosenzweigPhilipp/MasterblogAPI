@@ -83,16 +83,40 @@ def quick_test():
         response = requests.delete('http://localhost:5002/api/posts/99999')
         print(f"   Status: {response.status_code}")
             
+        # Test SEARCH functionality
+        print("\n8. Testing GET /api/posts/search (search by title)...")
+        response = requests.get('http://localhost:5002/api/posts/search?title=first')
+        print(f"   Status: {response.status_code}")
+        if response.status_code == 200:
+            search_results = response.json()
+            print(f"   Found {len(search_results)} posts matching 'first' in title")
+        
+        # Test SEARCH by content
+        print("\n9. Testing GET /api/posts/search (search by content)...")
+        response = requests.get('http://localhost:5002/api/posts/search?content=updated')
+        print(f"   Status: {response.status_code}")
+        if response.status_code == 200:
+            search_results = response.json()
+            print(f"   Found {len(search_results)} posts matching 'updated' in content")
+        
+        # Test SEARCH with no results
+        print("\n10. Testing GET /api/posts/search (no matches)...")
+        response = requests.get('http://localhost:5002/api/posts/search?title=nonexistent')
+        print(f"    Status: {response.status_code}")
+        if response.status_code == 200:
+            search_results = response.json()
+            print(f"    Found {len(search_results)} posts (should be 0)")
+        
         # Test validation
-        print("\n8. Testing POST validation...")
+        print("\n11. Testing POST validation...")
         response = requests.post(
             'http://localhost:5002/api/posts',
             headers={'Content-Type': 'application/json'},
             json={"title": "No content"}  # Missing content
         )
-        print(f"   Status (missing content): {response.status_code}")
+        print(f"    Status (missing content): {response.status_code}")
         
-        print("\n✅ Quick test completed! Full CRUD API tested.")
+        print("\n✅ Quick test completed! Full CRUD + Search API tested.")
         
     except Exception as e:
         print(f"❌ Error: {e}")
