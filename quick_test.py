@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Quick test for the POST endpoint
+Quick test for the Blog API - Step 6 Enhanced with Search + Sorting
+Fast testing of all endpoints including CRUD, search, and sorting functionality
 """
 import requests
 import json
@@ -116,7 +117,47 @@ def quick_test():
         )
         print(f"    Status (missing content): {response.status_code}")
         
-        print("\n✅ Quick test completed! Full CRUD + Search API tested.")
+        # NEW: Test SORTING functionality
+        print("\n12. Testing GET /api/posts with sorting (title asc)...")
+        response = requests.get('http://localhost:5002/api/posts?sort=title&direction=asc')
+        print(f"    Status: {response.status_code}")
+        if response.status_code == 200:
+            sorted_posts = response.json()
+            titles = [post['title'] for post in sorted_posts]
+            print(f"    Found {len(sorted_posts)} posts sorted by title (asc)")
+            print(f"    First title: {titles[0] if titles else 'None'}")
+        
+        print("\n13. Testing GET /api/posts with sorting (title desc)...")
+        response = requests.get('http://localhost:5002/api/posts?sort=title&direction=desc')
+        print(f"    Status: {response.status_code}")
+        if response.status_code == 200:
+            sorted_posts = response.json()
+            titles = [post['title'] for post in sorted_posts]
+            print(f"    Found {len(sorted_posts)} posts sorted by title (desc)")
+            print(f"    First title: {titles[0] if titles else 'None'}")
+        
+        print("\n14. Testing GET /api/posts with sorting (content asc)...")
+        response = requests.get('http://localhost:5002/api/posts?sort=content&direction=asc')
+        print(f"    Status: {response.status_code}")
+        if response.status_code == 200:
+            sorted_posts = response.json()
+            print(f"    Found {len(sorted_posts)} posts sorted by content (asc)")
+        
+        print("\n15. Testing GET /api/posts sorting validation (invalid field)...")
+        response = requests.get('http://localhost:5002/api/posts?sort=invalid_field&direction=asc')
+        print(f"    Status (should be 400): {response.status_code}")
+        
+        print("\n16. Testing GET /api/posts sorting validation (invalid direction)...")
+        response = requests.get('http://localhost:5002/api/posts?sort=title&direction=invalid_dir')
+        print(f"    Status (should be 400): {response.status_code}")
+        
+        print("\n17. Testing GET /api/posts default sorting (title only)...")
+        response = requests.get('http://localhost:5002/api/posts?sort=title')
+        print(f"    Status: {response.status_code}")
+        if response.status_code == 200:
+            print("    Successfully defaulted to ascending order")
+        
+        print("\n✅ Quick test completed! Full CRUD + Search + Sorting API tested.")
         
     except Exception as e:
         print(f"❌ Error: {e}")

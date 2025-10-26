@@ -371,6 +371,183 @@ def test_update_post_not_found():
         print(f"❌ Error: {e}")
         return False
 
+def test_sorting_functionality():
+    """Test the GET /api/posts endpoint with sorting parameters"""
+    try:
+        print("\nTesting GET /api/posts endpoint with sorting...")
+        
+        # First, create multiple posts with different titles and content for sorting
+        print("• Creating posts for sorting testing...")
+        test_posts = [
+            {"title": "Apple Tutorial", "content": "Zebra content for testing sorting."},
+            {"title": "Banana Guide", "content": "Alpha content for testing sorting."},
+            {"title": "Cherry Notes", "content": "Beta content for testing sorting."},
+        ]
+        
+        created_post_ids = []
+        for post_data in test_posts:
+            response = requests.post(
+                'http://localhost:5002/api/posts',
+                headers={'Content-Type': 'application/json'},
+                json=post_data
+            )
+            if response.status_code == 201:
+                created_post_ids.append(response.json()['id'])
+        
+        print(f"✅ Created {len(created_post_ids)} test posts for sorting")
+        
+        # Test 1: Sort by title ascending
+        print("• Testing sort by title ascending...")
+        response = requests.get('http://localhost:5002/api/posts?sort=title&direction=asc')
+        
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            sorted_posts = response.json()
+            print(f"✅ Retrieved {len(sorted_posts)} posts sorted by title (asc)")
+            
+            # Check if posts are sorted by title in ascending order
+            titles = [post['title'] for post in sorted_posts]
+            is_sorted_asc = titles == sorted(titles)
+            
+            if is_sorted_asc:
+                print("✅ Posts correctly sorted by title in ascending order")
+                print(f"   Titles: {titles}")
+            else:
+                print("❌ Posts not sorted correctly by title ascending")
+                return False
+        else:
+            print("❌ Failed to sort by title ascending")
+            return False
+        
+        # Test 2: Sort by title descending
+        print("• Testing sort by title descending...")
+        response = requests.get('http://localhost:5002/api/posts?sort=title&direction=desc')
+        
+        if response.status_code == 200:
+            sorted_posts = response.json()
+            titles = [post['title'] for post in sorted_posts]
+            is_sorted_desc = titles == sorted(titles, reverse=True)
+            
+            if is_sorted_desc:
+                print("✅ Posts correctly sorted by title in descending order")
+                print(f"   Titles: {titles}")
+            else:
+                print("❌ Posts not sorted correctly by title descending")
+                return False
+        else:
+            print("❌ Failed to sort by title descending")
+            return False
+        
+        # Test 3: Sort by content ascending
+        print("• Testing sort by content ascending...")
+        response = requests.get('http://localhost:5002/api/posts?sort=content&direction=asc')
+        
+        if response.status_code == 200:
+            sorted_posts = response.json()
+            contents = [post['content'] for post in sorted_posts]
+            is_sorted_asc = contents == sorted(contents)
+            
+            if is_sorted_asc:
+                print("✅ Posts correctly sorted by content in ascending order")
+            else:
+                print("❌ Posts not sorted correctly by content ascending")
+                return False
+        else:
+            print("❌ Failed to sort by content ascending")
+            return False
+        
+        # Test 4: Sort by content descending
+        print("• Testing sort by content descending...")
+        response = requests.get('http://localhost:5002/api/posts?sort=content&direction=desc')
+        
+        if response.status_code == 200:
+            sorted_posts = response.json()
+            contents = [post['content'] for post in sorted_posts]
+            is_sorted_desc = contents == sorted(contents, reverse=True)
+            
+            if is_sorted_desc:
+                print("✅ Posts correctly sorted by content in descending order")
+            else:
+                print("❌ Posts not sorted correctly by content descending")
+                return False
+        else:
+            print("❌ Failed to sort by content descending")
+            return False
+        
+        # Test 5: Default to ascending when direction not provided
+        print("• Testing default direction (ascending) when only sort field provided...")
+        response = requests.get('http://localhost:5002/api/posts?sort=title')
+        
+        if response.status_code == 200:
+            sorted_posts = response.json()
+            titles = [post['title'] for post in sorted_posts]
+            is_sorted_asc = titles == sorted(titles)
+            
+            if is_sorted_asc:
+                print("✅ Correctly defaulted to ascending order when direction not provided")
+            else:
+                print("❌ Failed to default to ascending order")
+                return False
+        else:
+            print("❌ Failed to handle missing direction parameter")
+            return False
+        
+        # Test 6: No parameters (original order)
+        print("• Testing no sorting parameters (original order)...")
+        response = requests.get('http://localhost:5002/api/posts')
+        
+        if response.status_code == 200:
+            posts = response.json()
+            print("✅ Successfully retrieved posts in original order")
+        else:
+            print("❌ Failed to retrieve posts without sorting parameters")
+            return False
+        
+        # Test 7: Invalid sort field
+        print("• Testing invalid sort field...")
+        response = requests.get('http://localhost:5002/api/posts?sort=invalid_field&direction=asc')
+        
+        if response.status_code == 400:
+            error_response = response.json()
+            print("✅ Correctly returned 400 for invalid sort field")
+            print(f"   Error: {error_response.get('error', 'No error message')}")
+        else:
+            print(f"❌ Expected 400 for invalid sort field, got {response.status_code}")
+            return False
+        
+        # Test 8: Invalid direction
+        print("• Testing invalid direction...")
+        response = requests.get('http://localhost:5002/api/posts?sort=title&direction=invalid_dir')
+        
+        if response.status_code == 400:
+            error_response = response.json()
+            print("✅ Correctly returned 400 for invalid direction")
+            print(f"   Error: {error_response.get('error', 'No error message')}")
+        else:
+            print(f"❌ Expected 400 for invalid direction, got {response.status_code}")
+            return False
+        
+        # Test 9: Direction without sort field
+        print("• Testing direction without sort field...")
+        response = requests.get('http://localhost:5002/api/posts?direction=asc')
+        
+        if response.status_code == 400:
+            error_response = response.json()
+            print("✅ Correctly returned 400 for direction without sort field")
+            print(f"   Error: {error_response.get('error', 'No error message')}")
+            return True
+        else:
+            print(f"❌ Expected 400 for direction without sort field, got {response.status_code}")
+            return False
+            
+    except requests.exceptions.ConnectionError:
+        print("❌ Connection Error: Make sure the backend server is running on port 5002")
+        return False
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        return False
+
 def test_search_posts():
     """Test the GET /api/posts/search endpoint"""
     try:
@@ -487,7 +664,7 @@ def test_search_posts():
         return False
 
 if __name__ == "__main__":
-    print("🧪 Running API Tests for Step 5: Complete CRUD + Search Operations\n")
+    print("🧪 Running API Tests for Step 6: Complete CRUD + Search + Sorting Operations\n")
     
     # Test GET endpoint first
     get_success = test_get_posts()
@@ -506,6 +683,9 @@ if __name__ == "__main__":
     
     # Test SEARCH endpoint
     search_success = test_search_posts()
+    
+    # Test SORTING functionality
+    sorting_success = test_sorting_functionality()
     
     # Test DELETE endpoint
     delete_success = test_delete_post()
@@ -526,14 +706,16 @@ if __name__ == "__main__":
     print(f"PUT /api/posts/<id>: {'✅ PASS' if update_success else '❌ FAIL'}")
     print(f"PUT 404 Error: {'✅ PASS' if update_not_found_success else '❌ FAIL'}")
     print(f"GET /api/posts/search: {'✅ PASS' if search_success else '❌ FAIL'}")
+    print(f"GET /api/posts (sorting): {'✅ PASS' if sorting_success else '❌ FAIL'}")
     print(f"DELETE /api/posts/<id>: {'✅ PASS' if delete_success else '❌ FAIL'}")
     print(f"DELETE 404 Error: {'✅ PASS' if delete_not_found_success else '❌ FAIL'}")
     
-    all_tests_passed = all([get_success, add_success, validation_success, update_success, update_not_found_success, search_success, delete_success, delete_not_found_success])
+    all_tests_passed = all([get_success, add_success, validation_success, update_success, update_not_found_success, search_success, sorting_success, delete_success, delete_not_found_success])
     
     if all_tests_passed:
-        print("\n🎉 All tests passed! Step 5 Enhanced API implementation is complete and working correctly.")
-        print("✨ Your RESTful Blog API supports: CREATE, READ, UPDATE, DELETE + SEARCH operations!")
+        print("\n🎉 All tests passed! Step 6 Enhanced API implementation is complete and working correctly.")
+        print("✨ Your RESTful Blog API supports: CREATE, READ, UPDATE, DELETE + SEARCH + SORTING operations!")
         print("🔍 Search functionality allows finding posts by title or content!")
+        print("📊 Sorting functionality allows organizing posts by title or content in asc/desc order!")
     else:
         print("\n⚠️  Some tests failed. Please check the implementation.")
