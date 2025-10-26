@@ -18,8 +18,8 @@ def quick_test():
         # Test POST
         print("\n2. Testing POST /api/posts...")
         new_post = {
-            "title": "Quick Test Post",
-            "content": "This is a test post."
+            "title": "Quick Test Post for Deletion",
+            "content": "This post will be deleted in the test."
         }
         
         response = requests.post(
@@ -28,12 +28,28 @@ def quick_test():
             json=new_post
         )
         print(f"   Status: {response.status_code}")
+        created_id = None
         if response.status_code == 201:
             created_post = response.json()
-            print(f"   Created post with ID: {created_post.get('id')}")
+            created_id = created_post.get('id')
+            print(f"   Created post with ID: {created_id}")
+        
+        # Test DELETE
+        if created_id:
+            print(f"\n3. Testing DELETE /api/posts/{created_id}...")
+            response = requests.delete(f'http://localhost:5002/api/posts/{created_id}')
+            print(f"   Status: {response.status_code}")
+            if response.status_code == 200:
+                delete_response = response.json()
+                print(f"   Message: {delete_response.get('message', 'No message')}")
+                
+        # Test DELETE with non-existent ID
+        print("\n4. Testing DELETE with non-existent ID (99999)...")
+        response = requests.delete('http://localhost:5002/api/posts/99999')
+        print(f"   Status: {response.status_code}")
             
         # Test validation
-        print("\n3. Testing validation...")
+        print("\n5. Testing POST validation...")
         response = requests.post(
             'http://localhost:5002/api/posts',
             headers={'Content-Type': 'application/json'},
