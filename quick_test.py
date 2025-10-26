@@ -43,13 +43,48 @@ def quick_test():
                 delete_response = response.json()
                 print(f"   Message: {delete_response.get('message', 'No message')}")
                 
+        # Test UPDATE (PUT)
+        print("\n4. Testing PUT /api/posts/1 (update existing post)...")
+        update_data = {
+            "title": "Updated First Post",
+            "content": "This post has been updated via PUT request."
+        }
+        
+        response = requests.put(
+            'http://localhost:5002/api/posts/1',
+            headers={'Content-Type': 'application/json'},
+            json=update_data
+        )
+        print(f"   Status: {response.status_code}")
+        if response.status_code == 200:
+            updated_post = response.json()
+            print(f"   Updated title: {updated_post.get('title', 'N/A')}")
+        
+        # Test PUT with partial update (title only)
+        print("\n5. Testing PUT with partial update (title only)...")
+        response = requests.put(
+            'http://localhost:5002/api/posts/1',
+            headers={'Content-Type': 'application/json'},
+            json={"title": "Partially Updated Title"}
+        )
+        print(f"   Status: {response.status_code}")
+        
+        # Test PUT with non-existent ID
+        print("\n6. Testing PUT with non-existent ID (99999)...")
+        response = requests.put(
+            'http://localhost:5002/api/posts/99999',
+            headers={'Content-Type': 'application/json'},
+            json={"title": "Won't work", "content": "Post doesn't exist"}
+        )
+        print(f"   Status: {response.status_code}")
+        
         # Test DELETE with non-existent ID
-        print("\n4. Testing DELETE with non-existent ID (99999)...")
+        print("\n7. Testing DELETE with non-existent ID (99999)...")
         response = requests.delete('http://localhost:5002/api/posts/99999')
         print(f"   Status: {response.status_code}")
             
         # Test validation
-        print("\n5. Testing POST validation...")
+        print("\n8. Testing POST validation...")
         response = requests.post(
             'http://localhost:5002/api/posts',
             headers={'Content-Type': 'application/json'},
@@ -57,7 +92,7 @@ def quick_test():
         )
         print(f"   Status (missing content): {response.status_code}")
         
-        print("\n✅ Quick test completed!")
+        print("\n✅ Quick test completed! Full CRUD API tested.")
         
     except Exception as e:
         print(f"❌ Error: {e}")
